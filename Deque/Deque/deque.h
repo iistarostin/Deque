@@ -1,3 +1,5 @@
+//GitHub rep https://github.com/iistarostin/Deque
+
 #pragma once
 #include <iterator>
 #include <memory>
@@ -117,12 +119,17 @@ public:
         }
         int operator-(const IteratorBase& r)
         {
-            return current - r.current;
+            if (isReverse)
+            {
+                return r.current - current;
+            }
+            else
+            {
+                return current - r.current;
+            }
         }
         ~IteratorBase()
-        {
-            ;
-        }
+        {}
     };
     class iterator : public IteratorBase
     {
@@ -231,8 +238,8 @@ public:
         count = 0;
         cap = MIN_CAP;
         raw = allocate(cap);
-        first = raw + cap / 2;
-        last = raw + cap / 2 - 1;
+        first = raw + cap / 2 - 1;
+        last = first;
     }
     Deque(const Deque& original):
         alloc(original.alloc)
@@ -251,11 +258,11 @@ public:
 
     const T& back() const
     {
-        return *last;
+        return *(last - 1);
     }
     T& back()
     {
-        return *last;
+        return *(last - 1);
     }
     const T& front() const
     {
@@ -285,29 +292,29 @@ public:
 
     T pop_back()
     {
-        if (!count)
+        if (empty())
             throw EmptyDequeException();
+        T res = *(--last);
+        destroy(last);
         --count;
-        T res = *(last);
-        destroy(last--);
         shrink();
         return res;
     }
     T pop_front()
     {
-        if (!count)
+        if (empty())
             throw EmptyDequeException();
-        --count;
-        T res = *(first);
+        T res = *first;
         destroy(first++);
+        --count;
         shrink();
         return res;;
     }
     void push_back(const T& val)
     {
-        if ((int)(last - raw) == (int)(cap - 1))
+        if (last - raw == (int)cap)
             stretch();
-        construct(++last, val);
+        construct(last++, val);
         ++count;
     }
     void push_front(const T& val)
@@ -332,40 +339,40 @@ public:
     }
     iterator end()
     {
-        return iterator(last+1);
+        return iterator(last);
     }
     const_iterator end() const
     {
-        return const_iterator(last+1);
+        return const_iterator(last);
     }
     const_iterator cend() const
     {
-        return const_iterator(last+1);
+        return const_iterator(last);
     }
 
     reverse_iterator rbegin()
     {
-        return reverse_iterator(first);
+        return reverse_iterator(last - 1);
     }
     const_reverse_iterator rbegin() const
     {
-        return const_reverse_iterator(first);
+        return const_reverse_iterator(last - 1);
     }
     const_reverse_iterator crbegin() const
     {
-        return const_reverse_iterator(first);
+        return const_reverse_iterator(last - 1);
     }
     reverse_iterator rend()
     {
-        return reverse_iterator(last+1);
+        return reverse_iterator(first - 1);
     }
     const_reverse_iterator rend() const
     {
-        return const_reverse_iterator(last+1);
+        return const_reverse_iterator(first - 1);
     }
     const_reverse_iterator crend() const
     {
-        return const_reverse_iterator(last+1);
+        return const_reverse_iterator(first - 1);
     }
 
     ~Deque()
@@ -397,7 +404,7 @@ private:
     {
         size_t new_cap = cap * 2;
         T* new_raw = allocate(new_cap);
-        T* new_first = new_raw + cap / 4;
+        T* new_first = new_raw + new_cap / 4 + 1;
         for (unsigned int i = 0; i < count; ++i)
         {
             construct(new_first + i, first[i]);
@@ -407,7 +414,7 @@ private:
         raw = new_raw;
         cap = new_cap;
         first = new_first;
-        last = first + count - 1;
+        last = first + count;
     }
     void shrink()
     {
@@ -419,7 +426,7 @@ private:
             return;
         size_t new_cap = cap / 2;
         T* new_raw = allocate(new_cap);
-        T* new_first = new_raw + new_cap / 4;
+        T* new_first = new_raw + new_cap / 4 + 1;
         for (unsigned int i = 0; i < count; ++i)
         {
             construct(new_first + i, first[i]);
@@ -429,6 +436,6 @@ private:
         raw = new_raw;
         cap = new_cap;
         first = new_first;
-        last = first + count - 1;
+        last = first + count;
     }
 };
