@@ -1,5 +1,3 @@
-//GitHub rep https://github.com/iistarostin/Deque
-
 #pragma once
 #include <iterator>
 #include <memory>
@@ -18,15 +16,26 @@ class Deque
 public:
     class EmptyDequeException { ; };
     class DataCorruptionException { ; };
+    template<class Val_Type, class Ptr_Type, bool isReverse>
     class IteratorBase : public std::iterator<std::random_access_iterator_tag, T>
     {
+        void CheckAndAdd(int toAdd)
+        {
+            if (isReverse)
+            {
+                current -= toAdd;
+            }
+            else
+            {
+                current += toAdd;
+            }
+        }
     public:
         T* current;
-        bool isReverse;
-        IteratorBase(T* Current, bool IsReverse) :
-            current(Current), isReverse(IsReverse) {}
+        IteratorBase(T* Current) :
+            current(Current) {}
         IteratorBase(const IteratorBase& r) :
-            current(r.current), isReverse(r.isReverse) {}
+            current(r.current) {}
         bool operator ==(const IteratorBase& r)
         {
             return current == r.current;
@@ -37,76 +46,34 @@ public:
         }
         IteratorBase& operator++()
         {
-            if (isReverse)
-            {
-                --current;
-            }
-            else
-            {
-                ++current;
-            }
+            CheckAndAdd(1);
             return *this;
         }
         IteratorBase operator++(int)
         {
             IteratorBase temp(*this);
-            if (isReverse)
-            {
-                --current;
-            }
-            else
-            {
-                ++current;
-            }
+            CheckAndAdd(1);
             return temp;
         }
         IteratorBase& operator--()
         {
-            if (isReverse)
-            {
-                ++current;
-            }
-            else
-            {
-                --current;
-            }
+            CheckAndAdd(-1);
             return *this;
         }
         IteratorBase operator--(int)
         {
             IteratorBase temp(*this);
-            if (isReverse)
-            {
-                ++current;
-            }
-            else
-            {
-                --current;
-            }
+            CheckAndAdd(-1);
             return temp;
         }
         IteratorBase& operator+=(int r)
         {
-            if (isReverse)
-            {
-                current-=r;
-            }
-            else
-            {
-                current+=r;
-            }
+            CheckAndAdd(r);
             return *this;
         }
         IteratorBase& operator-=(int r)
         {
-            if (isReverse)
-            {
-                current+=r;
-            }
-            else
-            {
-                current-=r;
-            }
+            CheckAndAdd(-r);
             return *this;
         }
         IteratorBase operator+(int r)
@@ -128,9 +95,22 @@ public:
                 return current - r.current;
             }
         }
+        Val_Type operator *()
+        {
+            return *(this->current);
+        }
+        Ptr_Type operator->()
+        {
+            return this->current;
+        }
+        Val_Type operator[] (int index)
+        {
+            return *(this->current + index);
+        }
         ~IteratorBase()
         {}
     };
+    /*
     class iterator : public IteratorBase
     {
     public:
@@ -232,6 +212,11 @@ public:
             
         }
     };
+    */
+    typedef IteratorBase<T&, T*, false> iterator;
+    typedef IteratorBase<const T&, const T*, false> const_iterator;
+    typedef IteratorBase<T&, T*, true> reverse_iterator;
+    typedef IteratorBase <const T&, const T*, true> const_reverse_iterator;
     Deque()
         :alloc()
     {
@@ -400,9 +385,8 @@ private:
         dest = 0;
     }
 
-    void stretch()
+    void resize(size_t new_cap)
     {
-        size_t new_cap = cap * 2;
         T* new_raw = allocate(new_cap);
         T* new_first = new_raw + new_cap / 4 + 1;
         for (unsigned int i = 0; i < count; ++i)
@@ -416,6 +400,12 @@ private:
         first = new_first;
         last = first + count;
     }
+
+    void stretch()
+    {
+        size_t new_cap = cap * 2;
+        resize(new_cap);
+    }
     void shrink()
     {
         if (cap < MIN_CAP)
@@ -425,17 +415,6 @@ private:
         if (count > cap / 4 || cap < 2 * MIN_CAP)
             return;
         size_t new_cap = cap / 2;
-        T* new_raw = allocate(new_cap);
-        T* new_first = new_raw + new_cap / 4 + 1;
-        for (unsigned int i = 0; i < count; ++i)
-        {
-            construct(new_first + i, first[i]);
-            destroy(first + i);
-        }
-        deallocate(raw, cap);
-        raw = new_raw;
-        cap = new_cap;
-        first = new_first;
-        last = first + count;
+        resize(new_cap);
     }
 };

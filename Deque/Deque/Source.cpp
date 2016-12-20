@@ -19,7 +19,10 @@ void fillRandom(Deque<std::string>& d, std::deque<std::string>& sd, unsigned int
         sd.push_front(f);
         d.push_front(f);
     }
+
 }
+
+
 
 TEST(RandTests, PushPop)
 {
@@ -31,6 +34,17 @@ TEST(RandTests, PushPop)
         EXPECT_EQ(d.pop_back(), sd.back());
         sd.pop_back();
         EXPECT_EQ(d.size(), sd.size());
+    }
+}
+
+TEST(RandTests, AccessOperator)
+{
+    std::deque<std::string> sd = std::deque<std::string>();
+    Deque<std::string> d = Deque<std::string>();
+    fillRandom(d, sd, TestCount);
+    for (int i = 0; i < sd.size(); ++i)
+    {
+        EXPECT_EQ(d[i], sd[i]);
     }
 }
 
@@ -54,9 +68,47 @@ TEST(RandTests, IteratorsRead)
     EXPECT_FALSE(ritere - sd.crend() + 1);
 }
 
+TEST(RandTests, TimeTest)
+{
+    unsigned long long std_time_empty, std_time_full, Deque_time_empty, Deque_time_full;
+    std::deque<std::string> sd = std::deque<std::string>();
+    Deque<std::string> d = Deque<std::string>();
+    std_time_empty = clock();
+    for (int i = 0; i < TestCount; ++i)
+    {
+        sd.push_front(GetRandString());
+    }
+    std_time_empty = clock() - std_time_empty;
+
+    Deque_time_empty = clock();
+    for (int i = 0; i < TestCount; ++i)
+    {
+        d.push_front(GetRandString());
+    }
+    Deque_time_empty = clock() - Deque_time_empty;
+    
+    fillRandom(d, sd, TestCount);
+
+    std_time_full = clock();
+    for (int i = 0; i < TestCount; ++i)
+    {
+        sd.push_front(GetRandString());
+    }
+    std_time_full = clock() - std_time_full;
+
+    Deque_time_full = clock();
+    for (int i = 0; i < TestCount; ++i)
+    {
+        d.push_front(GetRandString());
+    }
+    Deque_time_full = clock() - Deque_time_full;
+
+    EXPECT_TRUE((0.2 / Deque_time_empty * Deque_time_full) < (1.0 / std_time_empty * std_time_full));
+}
+
 int main(int argc, char**argv)
 {
-
+    
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
