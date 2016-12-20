@@ -16,20 +16,9 @@ class Deque
 public:
     class EmptyDequeException { ; };
     class DataCorruptionException { ; };
-    template<class Val_Type, class Ptr_Type, bool isReverse>
-    class IteratorBase : public std::iterator<std::random_access_iterator_tag, T>
+    template<class Val_Type, class Ptr_Type>
+    class IteratorBase : public std::iterator<std::random_access_iterator_tag, Val_Type>
     {
-        void CheckAndAdd(int toAdd)
-        {
-            if (isReverse)
-            {
-                current -= toAdd;
-            }
-            else
-            {
-                current += toAdd;
-            }
-        }
     public:
         T* current;
         IteratorBase(T* Current) :
@@ -46,56 +35,49 @@ public:
         }
         IteratorBase& operator++()
         {
-            CheckAndAdd(1);
+            ++current;
             return *this;
         }
         IteratorBase operator++(int)
         {
             IteratorBase temp(*this);
-            CheckAndAdd(1);
+            ++current;
             return temp;
         }
         IteratorBase& operator--()
         {
-            CheckAndAdd(-1);
+            --current;
             return *this;
         }
         IteratorBase operator--(int)
         {
             IteratorBase temp(*this);
-            CheckAndAdd(-1);
+            --current;
             return temp;
         }
         IteratorBase& operator+=(int r)
         {
-            CheckAndAdd(r);
+            current += r;
             return *this;
         }
         IteratorBase& operator-=(int r)
         {
-            CheckAndAdd(-r);
+            current -= r;
             return *this;
         }
-        IteratorBase operator+(int r)
+        IteratorBase operator+(int r) const
         {
             return IteratorBase(*this) += r;
         }
-        IteratorBase operator-(int r)
+        IteratorBase operator-(int r) const
         {
             return IteratorBase(*this) -= r;
         }
-        int operator-(const IteratorBase& r)
+        int operator-(const IteratorBase& r) const 
         {
-            if (isReverse)
-            {
-                return r.current - current;
-            }
-            else
-            {
-                return current - r.current;
-            }
+            return current - r.current;
         }
-        Val_Type operator *()
+        Val_Type& operator *()
         {
             return *(this->current);
         }
@@ -103,7 +85,7 @@ public:
         {
             return this->current;
         }
-        Val_Type operator[] (int index)
+        Val_Type& operator[] (int index)
         {
             return *(this->current + index);
         }
@@ -213,10 +195,10 @@ public:
         }
     };
     */
-    typedef IteratorBase<T&, T*, false> iterator;
-    typedef IteratorBase<const T&, const T*, false> const_iterator;
-    typedef IteratorBase<T&, T*, true> reverse_iterator;
-    typedef IteratorBase <const T&, const T*, true> const_reverse_iterator;
+    typedef IteratorBase<T, T*> iterator;
+    typedef IteratorBase<const T, const T*> const_iterator;
+    typedef std::reverse_iterator<IteratorBase<T, T*>> reverse_iterator;
+    typedef std::reverse_iterator<IteratorBase<const T, const T*>> const_reverse_iterator;
     Deque()
         :alloc()
     {
@@ -337,27 +319,27 @@ public:
 
     reverse_iterator rbegin()
     {
-        return reverse_iterator(last - 1);
+        return reverse_iterator(last);
     }
     const_reverse_iterator rbegin() const
     {
-        return const_reverse_iterator(last - 1);
+        return const_reverse_iterator(last);
     }
     const_reverse_iterator crbegin() const
     {
-        return const_reverse_iterator(last - 1);
+        return const_reverse_iterator(last);
     }
     reverse_iterator rend()
     {
-        return reverse_iterator(first - 1);
+        return reverse_iterator(first);
     }
     const_reverse_iterator rend() const
     {
-        return const_reverse_iterator(first - 1);
+        return const_reverse_iterator(first);
     }
     const_reverse_iterator crend() const
     {
-        return const_reverse_iterator(first - 1);
+        return const_reverse_iterator(first);
     }
 
     ~Deque()

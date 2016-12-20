@@ -63,7 +63,6 @@ TEST(RandTests, IteratorsRead)
         EXPECT_EQ(*ritere, *ritere1);
         ++iterb; ++iterb1; ++ritere; ++ritere1;
     }
-    EXPECT_FALSE(ritere1 - d.crend() + 1);
     EXPECT_FALSE(iterb - sd.cend() + 1);
     EXPECT_FALSE(ritere - sd.crend() + 1);
 }
